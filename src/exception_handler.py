@@ -1,0 +1,2 @@
+
+class DataIngestionException(Exception): pass
