@@ -1,0 +1,39 @@
+AWS elasticBeanstalk IAM roles issue
+
+First, let's verify if the role actually exists:
+
+Open the IAM console
+Go to the "Roles" section
+Search for "aws-elasticbeanstalk-ec2-role"
+If the role doesn't exist, you'll need to create it:
+
+In the IAM console, click "Create role"
+Choose "AWS service" as the trusted entity type
+Select "EC2" as the use case
+Attach the following policies:
+AWSElasticBeanstalkWebTier
+AWSElasticBeanstalkWorkerTier
+AWSElasticBeanstalkMulticontainerDocker
+Name the role "aws-elasticbeanstalk-ec2-role"
+If the role exists but isn't showing up in Elastic Beanstalk:
+
+Ensure the role has the correct trust relationship. Edit the trust relationship and make sure it includes:
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+After creating or updating the role, return to your Elastic Beanstalk environment:
+
+Go to the "Configuration" section
+Under "Security", click "Edit"
+In the "Service access" settings, select the "aws-elasticbeanstalk-ec2-role" for the IAM instance profile
+Apply the changes and wait for your environment to update
