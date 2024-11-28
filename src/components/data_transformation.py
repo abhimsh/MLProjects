@@ -105,7 +105,7 @@ class DataTransformation:
             save_object(file_path=DataTransformationConfig.preprocessor_file_path,
                         obj=preproceesor_obj)
 
-            return train_arr, test_arr, preproceesor_obj
+            return train_arr, test_arr, DataTransformationConfig.preprocessor_file_path
         except Exception as error:
             logging.exception(f"Exception encountered while Data transformation, Error: {error}")
             raise DataTransformationException(error)
