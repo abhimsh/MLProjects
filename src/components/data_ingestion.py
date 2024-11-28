@@ -1,6 +1,8 @@
 import os
 import pandas as pd
+from typing import List
 from shutil import rmtree
+
 from dataclasses import dataclass
 from src.logger import logging
 from src.exception_handler import DataIngestionException
@@ -24,7 +26,7 @@ class DataIngestion:
     def __init__(self):
         self.__create_necessary_directories()
 
-    def initiate_data_ingestion(self):
+    def initiate_data_ingestion(self) -> List[str]:
         logging.info("Initiated the DataIngestion")
         try:
             df = pd.read_csv(DataIngestionConfig.data_source_path)
