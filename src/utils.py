@@ -63,11 +63,11 @@ def evaluate_models(X_train: NDArray,
             model_obj = model_obj.set_params(**cv.best_params_)
             model_obj.fit(X_train, y_train)
             y_predict = model_obj.predict(X_test)
-            
+
             # Calculate metrics
             performance = scoring_dict[score](y_test, y_predict)
             model_performance[model_name] = (model_obj, performance)
-
+            logging.debug(model_performance)
             logging.debug(f"{model_name} - {performance} - {cv.best_params_}")
 
         logging.info("All model tarining completed!!!")
@@ -77,3 +77,28 @@ def evaluate_models(X_train: NDArray,
     except Exception as error:
         logging.exception(f"Exception encounterd while training the models: {error}")
         raise UtilsException(f"ModelTrainingError: {error}")
+
+
+def load_object(file_path: str):
+    """
+    Will load the python object from file using the pickling
+    """
+    try:
+        logging.debug(f"({file_path})")
+        
+        # Create the folder if not present
+        if not os.path.exists(file_path):
+            raise FileNotFoundError("Invaid Path provided!!, {file_path}")
+        
+        # Write the object to file
+        with open(file_path, "rb") as file_obj:
+            obj = dill.load(file_obj)
+
+        logging.debug(f"Successfully Loaded {repr(file_obj)} from {file_path}")
+
+        return obj
+    
+    except Exception as error:
+        logging.exception(f"Error Encounterd while Reading obj to file, Error: {error}")
+        raise UtilsException(error)
+    

@@ -9,3 +9,6 @@ class UtilsException(Exception):
 
 class ModelTrainingException(Exception):
     pass
+
+class PredictPipelineException(Exception):
+    pass

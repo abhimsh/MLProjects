@@ -89,8 +89,8 @@ class ModelTrainer:
             X_train, X_test, y_train, y_test = (
                 X_train_array[:, :-1],
                 X_test_array[:, :-1],
-                X_train_array[:, 1],
-                X_test_array[:, 1],
+                X_train_array[:, -1],
+                X_test_array[:, -1],
             )
             
             logging.info("Data successfully split into independent and target feature")
@@ -137,6 +137,7 @@ if __name__ == "__main__":
         train_data_path, 
         test_data_path
         )
-    
+    print(train_arr[1, :-1])
+    print(train_arr[1, -1])
     model_training_obj = ModelTrainer()
     model_training_obj.train_the_model(train_arr, test_arr)
