@@ -2,6 +2,7 @@ import dill
 import os
 from numpy.typing import NDArray
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.model_selection import GridSearchCV
 
 from src.logger import logging
 from src.exception_handler import UtilsException
@@ -33,6 +34,7 @@ def evaluate_models(X_train: NDArray,
                     X_test: NDArray,
                     y_test: NDArray, 
                     models: dict,
+                    model_parameters: dict,
                     score: str) -> dict:
     try:
         scoring_dict = {"r2_score": r2_score, "mae": mean_absolute_error, 
@@ -48,12 +50,25 @@ def evaluate_models(X_train: NDArray,
         for model_name, model_obj in models.items():
             
             logging.info(f"Start Model training for {model_name}")
+            cv = GridSearchCV(model_obj, 
+                              param_grid=model_parameters[model_name], 
+                              cv=3,
+                              n_jobs=-1,
+                              scoring="accuracy",
+                              verbose=3)
+            
+            cv.fit(X_train, y_train)
+
+            # Retrain the models with best parameters found during Hyper parameter tuning
+            model_obj = model_obj.set_params(**cv.best_params_)
             model_obj.fit(X_train, y_train)
             y_predict = model_obj.predict(X_test)
             
             # Calculate metrics
             performance = scoring_dict[score](y_test, y_predict)
-            model_performance[model_name] = performance
+            model_performance[model_name] = (model_obj, performance)
+
+            logging.debug(f"{model_name} - {performance} - {cv.best_params_}")
 
         logging.info("All model tarining completed!!!")
         logging.debug(model_performance)

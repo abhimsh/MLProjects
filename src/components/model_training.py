@@ -6,6 +6,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor, GradientBoostingRegressor
 from xgboost import XGBRegressor
+from catboost import CatBoostRegressor
 
 from src.utils import save_object, evaluate_models
 from src.exception_handler import ModelTrainingException
@@ -26,8 +27,55 @@ class ModelTrainingConfig:
         "Random Forest": RandomForestRegressor(),
         "AdaBoost": AdaBoostRegressor(),
         "GradientBoost": GradientBoostingRegressor(),
-        "XGBoost": XGBRegressor()
+        "XGBoost": XGBRegressor(),
+        "CatBoost": CatBoostRegressor()
     }
+
+    model_params = {
+            "Decision Tree": {
+                'criterion':['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
+                'splitter':['best','random'],
+                'max_features':['sqrt','log2', None],
+            },
+            "Random Forest":{
+                'criterion':['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
+                'max_features':['sqrt','log2', 1.0],
+                'n_estimators': [8, 16, 32, 64, 100, 128, 256]
+            },
+            "GradientBoost":{
+                'loss':['squared_error', 'huber', 'absolute_error', 'quantile'],
+                'learning_rate':[.1, .01, .05, .001],
+                'subsample':[0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 1.0],
+                'criterion':['squared_error', 'friedman_mse'],
+                'max_features':['sqrt','log2', None],
+                'n_estimators': [8, 16, 32, 64, 100, 128, 256]
+            },
+            "XGBoost":{
+                'learning_rate':[.1,.01,.05,.001],
+                'n_estimators': [8,16,32,64,128,256]
+            },
+            "CatBoost":{
+                'depth': [6,8,10, None],
+                'learning_rate': [0.01, 0.05, 0.1, None],
+                'iterations': [30, 50, 100, None]
+            },
+            "AdaBoost":{
+                'learning_rate':[1.0, .1, .01, 0.5, .001],
+                'loss':['linear','square','exponential'],
+                'n_estimators': [8, 16, 32, 64, 128, 256, None]
+            },
+            "K-Nearest Neighbour":
+            {
+                "n_neighbors": (1, 3, 4, 5, 6, 7),
+                "weights": ("uniform", "distance"),
+                "algorithm": ("ball_tree", "kd_tree", "brute", "auto"),
+                "p":(1,2)
+            },
+            "Linear Regression":{},
+            "Lasso": {},
+            "Ridge Regression":  {},
+            "Elastic Net":  {}
+            }
 
     performance_threshold = 0.6
 
@@ -53,21 +101,22 @@ class ModelTrainer:
                                                            X_test,
                                                            y_test,
                                                            models=ModelTrainingConfig.all_models,
+                                                           model_parameters=ModelTrainingConfig.model_params,
                                                            score="r2_score")
             
             logging.info("All the models have been trained successfully")
 
             # get the model with best score
             best_model = sorted(all_models_performance.items(), 
-                                key=lambda item: item[1])[-1]
+                                key=lambda item: item[1][-1])[-1]
             
             logging.info(f"best model: {best_model}")
             
             # if the best model's score is less than threshold, then reject 
-            if best_model[-1] < ModelTrainingConfig.performance_threshold:
+            if best_model[-1][-1] < ModelTrainingConfig.performance_threshold:
                 raise ModelTrainingException("No Good Model found!!!!")
 
-            
+
             # Save the model to file for further use
             save_object(file_path=ModelTrainingConfig.best_model_file_path,
                         obj=ModelTrainingConfig.all_models[best_model[0]])
